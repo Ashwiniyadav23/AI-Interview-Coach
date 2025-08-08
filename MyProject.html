@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced AI Interview Coach</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #6a5af9;
+      --secondary-color: #f7f7f9;
+      --text-color: #333;
+      --light-text-color: #666;
+      --success-color: #28a745;
+      --error-color: #dc3545;
+      --white-color: #fff;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --gradient-bg: linear-gradient(90deg, #8e44ad, var(--primary-color));
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: var(--white-color);
+      padding: 2.5rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      transition: all 0.5s ease-in-out;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* --- App Sections --- */
+    .app-section {
+      display: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+      width: 100%;
+    }
+    .app-section.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* --- Header --- */
+    h1, h2 {
+      color: var(--primary-color);
+      text-align: center;
+      margin-top: 0;
+      font-weight: 600;
+    }
+    p {
+      color: var(--light-text-color);
+      line-height: 1.6;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    /* --- Form Elements --- */
+    textarea, input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-family: 'Poppins', sans-serif;
+      resize: vertical;
+      box-sizing: border-box;
+      margin-top: 0.5rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    textarea:focus, input[type="text"]:focus, input[type="password"]:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(106, 90, 249, 0.2);
+        outline: none;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--white-color);
+      background: var(--gradient-bg);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1.5rem;
+      overflow: hidden;
+      position: relative;
+    }
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(106, 90, 249, 0.45);
+    }
+    button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* --- File Upload --- */
+    .upload-box {
+      border: 2px dashed var(--primary-color);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      background-color: #fafaff;
+      transition: all 0.3s ease;
+    }
+    .upload-box:hover {
+      background-color: #f5f3ff;
+      border-color: #8e44ad;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(106, 90, 249, 0.15);
+    }
+    .upload-box input[type="file"] {
+      display: none;
+    }
+    .upload-box label {
+      font-weight: 500;
+      color: var(--primary-color);
+      cursor: pointer;
+    }
+    #fileName {
+      margin-top: 1rem;
+      color: var(--light-text-color);
+      font-style: italic;
+    }
+
+    /* --- API Key Input Specifics --- */
+    .api-key-input {
+        margin-top: 2rem;
+        text-align: left;
+    }
+    .api-key-input label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-color);
+    }
+
+
+    /* --- Question Count Selection --- */
+    .question-options {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+    .question-option label {
+        display: block;
+        padding: 1rem 1.5rem;
+        border: 2px solid var(--primary-color);
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        color: var(--primary-color);
+        background-color: #eef;
+        transition: all 0.3s ease;
+    }
+    .question-option input[type="radio"] {
+        display: none;
+    }
+    .question-option input[type="radio"]:checked + label {
+        background: var(--gradient-bg);
+        color: var(--white-color);
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 10px rgba(106, 90, 249, 0.2);
+        transform: translateY(-2px);
+    }
+    .question-option label:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(106, 90, 249, 0.1);
+    }
+
+    /* --- Questions & Feedback Cards Layout --- */
+    #questionsContainer, #resultsContainer {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    @media (min-width: 768px) {
+        #resultsContainer {
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        }
+    }
+
+
+    .question-card, .feedback-card {
+      background: var(--white-color);
+      border: 1px solid #eee;
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInSlideUp 0.6s forwards ease-out;
+    }
+
+    .question-card b, .feedback-card b {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--primary-color);
+      font-size: 1.1rem;
+    }
+    .feedback-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    .score {
+        font-weight: 600;
+        padding: 0.4rem 0.8rem;
+        border-radius: 50px;
+        color: var(--white-color);
+        transition: background-color 0.3s ease;
+        font-size: 0.9rem;
+    }
+    .score.high { background-color: var(--success-color); }
+    .score.medium { background-color: #ffc107; }
+    .score.low { background-color: var(--error-color); }
+    .score.zero { background-color: #6c757d; }
+
+
+    /* --- Total Score Display --- */
+    #totalScoreDisplay {
+        background: var(--gradient-bg);
+        color: var(--white-color);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        text-align: center;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 6px 20px rgba(106, 90, 249, 0.3);
+        animation: fadeIn 0.8s ease-out;
+    }
+    #totalScoreDisplay h3 {
+        margin: 0.5rem 0;
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+    #totalScoreDisplay p {
+        margin-top: 0.5rem;
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.9);
+        text-align: center;
+    }
+
+
+    /* --- Loader and Messages --- */
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+    }
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid var(--primary-color);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .loader p { margin-top: 1rem; font-weight: 500; }
+
+    .error-message {
+      background-color: #fff0f1;
+      border: 1px solid var(--error-color);
+      color: var(--error-color);
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      margin-top: 1rem;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    /* --- Security Warning --- */
+    .security-warning {
+        background-color: #fffbe6;
+        border: 1px solid #ffc107;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 2rem;
+        animation: fadeIn 0.5s ease-out;
+    }
+    .security-warning h4 { margin-top: 0; color: #b08000; }
+    .security-warning code { background-color: #f0f0f0; padding: 2px 5px; border-radius: 4px; }
+
+    /* Keyframe Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes fadeInSlideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Section 1: File Upload -->
+    <div id="uploadSection" class="app-section active">
+      <h1>🤖 AI Interview Coach</h1>
+      <p>Upload your Resume, a Job Description, or any relevant text content in PDF or TXT format to generate personalized interview questions.</p>
+      
+      <!-- API Key Input Field -->
+      <div class="api-key-input">
+          <label for="apiKeyInput">Your Gemini API Key:</label>
+          <input type="password" id="apiKeyInput" placeholder="Enter your Google Gemini API key here" oninput="checkInputsAndEnableNext()">
+          <p style="font-size: 0.85rem; color: var(--light-text-color); margin-top: 0.5rem; text-align: left;">
+            Obtain your key from <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--primary-color);">Google AI Studio</a>.
+          </p>
+      </div>
+
+      <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept=".pdf,.txt" onchange="displayFileName()">
+        <label for="fileInput">Click to select a .PDF or .TXT file</label>
+        <div id="fileName">No file selected</div>
+      </div>
+      <button id="nextToCountBtn" onclick="handleFile()" disabled>Next</button>
+       
+    </div>
+
+    <!-- Section 1.5: Choose Question Count -->
+    <div id="questionCountSection" class="app-section">
+        <h2>🔢 Choose Interview Length</h2>
+        <p>How many questions would you like to generate for your practice interview?</p>
+        <div class="question-options">
+            <div class="question-option">
+                <input type="radio" id="q10" name="questionCount" value="10" checked>
+                <label for="q10">10 Questions</label>
+            </div>
+            <div class="question-option">
+                <input type="radio" id="q20" name="questionCount" value="20">
+                <label for="q20">20 Questions</label>
+            </div>
+            <div class="question-option">
+                <input type="radio" id="q30" name="questionCount" value="30">
+                <label for="q30">30 Questions</label>
+            </div>
+            <div class="question-option">
+                <input type="radio" id="q40" name="questionCount" value="40">
+                <label for="q40">40 Questions</label>
+            </div>
+        </div>
+        <button onclick="startGeneratingQuestions()">Generate Questions</button>
+    </div>
+
+
+    <!-- Section 2: Loading -->
+    <div id="loadingSection" class="app-section">
+      <div class="loader">
+        <div class="spinner"></div>
+        <p id="loadingText">Analyzing your document...</p>
+      </div>
+    </div>
+
+    <!-- Section 3: Answering Questions -->
+    <div id="questionsSection" class="app-section">
+      <h2>📝 Your Custom Interview</h2>
+      <p>Thoughtfully answer the questions below. Your responses will be evaluated by the AI.</p>
+      <div id="questionsContainer"></div>
+      <button onclick="submitAnswers()">Submit for Feedback</button>
+    </div>
+
+    <!-- Section 4: Results -->
+    <div id="resultsSection" class="app-section">
+      <h2>🏆 Your Feedback Report</h2>
+      <p>Here's a detailed analysis of your answers. Review the feedback to improve your interviewing skills.</p>
+      <div id="totalScoreDisplay">
+        <!-- Total score will be inserted here by JS -->
+      </div>
+      <div id="resultsContainer"></div>
+      <button onclick="startOver()">Start Over</button>
+    </div>
+
+  </div>
+
+  <script>
+    // No hardcoded API_KEY anymore. It's retrieved from the input field.
+
+    // --- State Management ---
+    let questionsAndAnswers = [];
+    let selectedFileContent = "";
+    let selectedQuestionCount = 10;
+
+    // --- DOM Elements ---
+    const uploadSection = document.getElementById('uploadSection');
+    const apiKeyInput = document.getElementById('apiKeyInput'); // New: API key input field
+    const questionCountSection = document.getElementById('questionCountSection');
+    const loadingSection = document.getElementById('loadingSection');
+    const questionsSection = document.getElementById('questionsSection');
+    const resultsSection = document.getElementById('resultsSection');
+    const loadingText = document.getElementById('loadingText');
+    const nextToCountBtn = document.getElementById('nextToCountBtn');
+    const totalScoreDisplay = document.getElementById('totalScoreDisplay');
+
+    // --- Page Load / Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Load API key from local storage if available
+        const storedApiKey = localStorage.getItem('geminiApiKey');
+        if (storedApiKey) {
+            apiKeyInput.value = storedApiKey;
+        }
+        // Check initial state to enable/disable button
+        checkInputsAndEnableNext();
+    });
+
+    // --- UI Navigation ---
+    function showSection(section) {
+      const activeSection = document.querySelector('.app-section.active');
+      if (activeSection) {
+        activeSection.classList.remove('active');
+        setTimeout(() => {
+          section.classList.add('active');
+        }, 500);
+      } else {
+        section.classList.add('active');
+      }
+    }
+
+    function checkInputsAndEnableNext() {
+        const fileSelected = document.getElementById("fileInput").files.length > 0;
+        const apiKeyEntered = apiKeyInput.value.trim() !== '';
+        nextToCountBtn.disabled = !(fileSelected && apiKeyEntered);
+    }
+
+    function displayFileName() {
+        const file = document.getElementById("fileInput").files[0];
+        const fileNameDiv = document.getElementById('fileName');
+        if (file) {
+            fileNameDiv.textContent = `Selected: ${file.name}`;
+        } else {
+            fileNameDiv.textContent = 'No file selected';
+        }
+        checkInputsAndEnableNext(); // Call this to update button state
+    }
+
+    function startOver() {
+        questionsAndAnswers = [];
+        selectedFileContent = "";
+        selectedQuestionCount = 10;
+        document.getElementById('fileInput').value = null;
+        displayFileName();
+        document.getElementById('questionsContainer').innerHTML = '';
+        document.getElementById('resultsContainer').innerHTML = '';
+        totalScoreDisplay.innerHTML = '';
+        document.getElementById('q10').checked = true; 
+        
+        apiKeyInput.value = ''; // Clear API key input
+        localStorage.removeItem('geminiApiKey'); // Remove from local storage
+        checkInputsAndEnableNext(); // Update button state after clearing key
+        showSection(uploadSection);
+    }
+
+    // --- Core Logic ---
+    async function handleFile() {
+      const currentApiKey = apiKeyInput.value.trim();
+      if (!currentApiKey) {
+        alert("Please enter your Gemini API key.");
+        return;
+      }
+
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) {
+        alert("Please select a file first.");
+        return;
+      }
+
+      // Save API key to local storage for future visits
+      localStorage.setItem('geminiApiKey', currentApiKey);
+
+      loadingText.textContent = "Analyzing your document...";
+      showSection(loadingSection);
+
+      try {
+        if (file.type === "application/pdf") {
+          selectedFileContent = await parsePDF(file);
+        } else {
+          selectedFileContent = await file.text();
+        }
+        showSection(questionCountSection);
+      } catch (error) {
+        console.error("Error handling file:", error);
+        showError(uploadSection, `Failed to process the file. Error: ${error.message}. Please try a different file or check the console for errors.`);
+      }
+    }
+
+    function startGeneratingQuestions() {
+        const selectedRadio = document.querySelector('input[name="questionCount"]:checked');
+        if (selectedRadio) {
+            selectedQuestionCount = parseInt(selectedRadio.value);
+        }
+
+        if (!selectedFileContent) {
+            showError(uploadSection, "No file content available. Please upload a file again.");
+            return;
+        }
+
+        loadingText.textContent = `Generating ${selectedQuestionCount} personalized questions...`;
+        showSection(loadingSection);
+
+        generateQuestions(selectedFileContent, selectedQuestionCount);
+    }
+
+
+    async function parsePDF(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      if (typeof pdfjsLib === 'undefined') {
+          console.error("pdf.js library not loaded.");
+          throw new Error("PDF processing library not available. Please ensure the CDN link for pdf.js is correct.");
+      }
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(item => item.str).join(" ") + "\n";
+      }
+      return text;
+    }
+
+    async function generateQuestions(content, count) {
+      const prompt = `Based on the following content (which could be a resume, job description, or other relevant text), generate an array of ${count} unique, insightful, and relevant interview questions. Include a strong mix of questions directly related to the provided content (e.g., specific projects, experiences, skills, company details) and common behavioral/situational interview questions (e.g., "Tell me about a time you faced a challenge," "Why are you interested in this role?"). Ensure the questions are professional and suitable for an interview. Return the output as a valid JSON array of strings. For example: ["Question 1?", "Question 2?", ..., "Question ${count}?"]\n\nContent:\n${content}`;
+      
+      try {
+        const responseText = await callGenerativeAPI(prompt);
+        const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const generatedQuestions = JSON.parse(cleanedResponse);
+        
+        questionsAndAnswers = generatedQuestions.map(q => ({ question: q, answer: "" }));
+        displayQuestions();
+        showSection(questionsSection);
+      } catch (error) {
+        console.error("Error generating questions:", error);
+        showError(questionCountSection, `The AI failed to generate questions. Error: ${error.message}. This might be due to an invalid API key, network issues, or content policy violations. Please try again.`);
+      }
+    }
+
+    function displayQuestions() {
+      const container = document.getElementById("questionsContainer");
+      container.innerHTML = "";
+      questionsAndAnswers.forEach((item, index) => {
+        const questionCard = document.createElement('div');
+        questionCard.className = 'question-card';
+        questionCard.style.animationDelay = `${index * 0.1}s`; 
+        questionCard.innerHTML = `
+            <b>Question ${index + 1}</b>
+            <p>${item.question}</p>
+            <textarea id="answer${index}" rows="4" placeholder="Type your detailed answer here..."></textarea>
+        `;
+        container.appendChild(questionCard);
+      });
+    }
+
+    async function submitAnswers() {
+      questionsAndAnswers.forEach((item, index) => {
+        item.answer = document.getElementById(`answer${index}`).value.trim();
+      });
+
+      loadingText.textContent = "Evaluating your answers...";
+      showSection(loadingSection);
+      
+      const feedbackPromises = questionsAndAnswers.map(qa => getAnswerFeedback(qa.question, qa.answer));
+      
+      try {
+        const feedbacks = await Promise.all(feedbackPromises);
+        displayResults(feedbacks);
+        calculateAndDisplayTotalScore(feedbacks);
+        showSection(resultsSection);
+      } catch (error) {
+         console.error("Error submitting answers:", error);
+         showError(questionsSection, `An error occurred while getting feedback. Error: ${error.message}. Please check your network or API key and try again.`);
+      }
+    }
+
+    async function getAnswerFeedback(question, answer) {
+      if (!answer) {
+        return { score: 0, explanation: "No answer was provided. In an interview, it's crucial to attempt every question, even if you need a moment to think. Saying nothing results in no points and misses an opportunity to showcase your skills." };
+      }
+      
+      const prompt = `You are an expert interview evaluator. Evaluate the following interview answer based on the question.
+      Provide a score from 0 (empty, irrelevant, or significantly off-topic) to 5 (excellent, comprehensive, highly relevant, and well-articulated).
+      
+      Scoring criteria:
+      - 0: No answer provided, or the answer is completely off-topic, nonsensical, or demonstrates a fundamental misunderstanding of the question.
+      - 1: Very poor. The answer is barely relevant, very confused, contains significant errors, or is extremely brief without substance.
+      - 2: Weak. The answer is partially relevant but lacks depth, clarity, structure, or contains noticeable inaccuracies. It shows some understanding but major gaps.
+      - 3: Adequate. The answer is generally relevant and correct, but could be more detailed, better structured, more impactful, or lacks strong examples. It meets basic expectations.
+      - 4: Good. The answer is clear, relevant, well-structured, and provides good insight. It's solid but might have minor areas for refinement or could be more persuasive.
+      - 5: Excellent. The answer is comprehensive, highly relevant, clear, concise, impactful, and demonstrates strong critical thinking, experience, or problem-solving skills. It exceeds expectations.
+      
+      The explanation should be constructive, actionable, and clearly state *why* the score was given.
+      - For scores 0-2: Explicitly suggest what the user *could have included*, how they could have *structured their response better*, or what *key points they missed*. Emphasize the importance of relevance and substance.
+      - For scores 3-5: Highlight specific strengths and suggest subtle refinements for perfection (e.g., adding a STAR example, more specific metrics, or a stronger closing statement).
+      
+      Return your response as a valid JSON object with two keys: "score" (a number, 0-5) and "explanation" (a string).
+      
+      Question: "${question}"
+      Answer: "${answer}"`;
+
+      const responseText = await callGenerativeAPI(prompt);
+      const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(cleanedResponse);
+    }
+    
+    function displayResults(feedbacks) {
+        const container = document.getElementById("resultsContainer");
+        container.innerHTML = "";
+
+        feedbacks.forEach((feedback, index) => {
+            const qa = questionsAndAnswers[index];
+            let scoreClass = 'low';
+            if (feedback.score === 0) scoreClass = 'zero';
+            else if (feedback.score >= 4) scoreClass = 'high';
+            else if (feedback.score >= 3) scoreClass = 'medium';
+
+            const feedbackCard = document.createElement('div');
+            feedbackCard.className = 'feedback-card';
+            feedbackCard.style.animationDelay = `${index * 0.1}s`; 
+            feedbackCard.innerHTML = `
+                <div class="feedback-header">
+                    <b>Question ${index + 1}</b>
+                    <span class="score ${scoreClass}">Score: ${feedback.score}/5</span>
+                </div>
+                <p><em>${qa.question}</em></p>
+                <p><strong>Your Answer:</strong> ${qa.answer || "<em>(No answer provided)</em>"}</p>
+                <p><strong>AI Feedback:</strong> ${feedback.explanation}</p>
+            `;
+            container.appendChild(feedbackCard);
+        });
+    }
+
+    function calculateAndDisplayTotalScore(feedbacks) {
+        const totalPossibleScore = feedbacks.length * 5;
+        const yourTotalScore = feedbacks.reduce((sum, f) => sum + f.score, 0);
+        const percentage = (yourTotalScore / totalPossibleScore) * 100;
+
+        let rating = "";
+        if (percentage >= 90) {
+            rating = "Outstanding Performance!";
+        } else if (percentage >= 75) {
+            rating = "Excellent Work!";
+        } else if (percentage >= 60) {
+            rating = "Good Effort, Room for Improvement.";
+        } else if (percentage >= 40) {
+            rating = "Needs Significant Practice.";
+        } else {
+            rating = "Time to Refocus and Relearn.";
+        }
+
+        totalScoreDisplay.innerHTML = `
+            <h3>Your Overall Score: ${yourTotalScore} / ${totalPossibleScore}</h3>
+            <p>${percentage.toFixed(0)}% - ${rating}</p>
+            <p>Review the individual feedback to pinpoint areas for improvement and practice for your next interview!</p>
+        `;
+    }
+
+    // --- Reusable API & Error Functions ---
+    async function callGenerativeAPI(prompt) {
+        // Retrieve API key from the input field
+        const API_KEY_CURRENT = apiKeyInput.value.trim();
+        if (!API_KEY_CURRENT) {
+            throw new Error("API key is missing. Please enter your Gemini API key.");
+        }
+
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY_CURRENT}`;
+        
+        const body = {
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: {
+                temperature: 0.5,
+                topK: 1,
+                topP: 1,
+            }
+        };
+
+        const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`API call failed with status ${response.status}: ${errorBody}`);
+        }
+
+        const data = await response.json();
+        if (data.candidates && data.candidates[0].finishReason === 'SAFETY') {
+            throw new Error("Content was blocked due to safety concerns. Please adjust your input or prompt.");
+        }
+        if (!data.candidates || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0].text) {
+             throw new Error("Invalid response structure from API. No text content found.");
+        }
+        return data.candidates[0].content.parts[0].text;
+    }
+
+    function showError(sectionToShow, message) {
+        const targetContainer = sectionToShow.querySelector('.container') || sectionToShow;
+        
+        const existingError = targetContainer.querySelector('.error-message');
+        if (existingError) existingError.remove();
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = message;
+        
+        const button = sectionToShow.querySelector('button');
+        if (button) {
+            sectionToShow.insertBefore(errorDiv, button);
+        } else {
+            sectionToShow.appendChild(errorDiv);
+        }
+        showSection(sectionToShow);
+    }
+
+  </script>
+</body>
+</html>
